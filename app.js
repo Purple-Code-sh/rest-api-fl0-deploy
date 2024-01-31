@@ -1,11 +1,11 @@
-const express = require('express') // require -> commonJS
-const crypto = require('node:crypto')
+import express, { json } from 'express' // require -> commonJS
+import { randomUUID } from 'node:crypto'
 
-const movies = require('./movies.json')
-const { validateMovie, validatePartialMovie } = require('./schemas/movieSchema')
+import movies from './movies.json'
+import { validateMovie, validatePartialMovie } from './schemas/movieSchema.js'
 
 const app = express()
-app.use(express.json())
+app.use(json())
 
 app.disable('x-powered-by') // deshabilitar el header X-Powered-By: Express
 
@@ -50,7 +50,7 @@ app.post('/movies', (req, res) => {
 
   // en base de datos
   const newMovie = {
-    id: crypto.randomUUID(), // uuid v4
+    id: randomUUID(), // uuid v4
     ...result.data
   }
 
