@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { readJSON } from './utils/requireSystem.js'
+import { readJSON } from '../utils/requireSystem.js'
 import { randomUUID } from 'node:crypto'
-import { validateMovie, validatePartialMovie } from '../schemas/movieSchema'
+import { validateMovie, validatePartialMovie } from '../schemas/movieSchema.js'
+import { MovieModel } from '../models/movie.js'
 
 export const moviesRouter = Router()
 const movies = readJSON('./movies.json')
@@ -13,7 +14,7 @@ const ACCEPTED_ORIGINS = [
 ]
 
 // ------------- Get all movies ------------- .
-moviesRouter.get('/', (req, res) => {
+moviesRouter.get('/', async (req, res) => {
   const origin = req.header('origin')
 
   if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
@@ -21,19 +22,14 @@ moviesRouter.get('/', (req, res) => {
   }
 
   const { genre } = req.query
-  if (genre) {
-    const filteredMovies = movies.filter(
-      movie => movie.genre.some(g => g.toLowerCase() === genre.toLowerCase())
-    )
-    return res.json(filteredMovies)
-  }
+  const movies = await MovieModel.getAll({ genre })
   res.json(movies)
 })
 
 // ------------- Get a specific movie ------------- .
-moviesRouter.get('/:id', (req, res) => {
+moviesRouter.get('/:id', async (req, res) => {
   const { id } = req.params
-  const movie = movies.find(movie => movie.id === id)
+  const movie = await MovieModel.getById({ id })
   if (movie) return res.json(movie)
   res.status(404).json({ message: 'Movie not found' })
 })
