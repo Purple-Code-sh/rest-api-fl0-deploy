@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import { readJSON } from '../utils/requireSystem.js'
-import { randomUUID } from 'node:crypto'
 import { validateMovie, validatePartialMovie } from '../schemas/movieSchema.js'
 import { MovieModel } from '../models/movie.js'
 
@@ -35,7 +34,7 @@ moviesRouter.get('/:id', async (req, res) => {
 })
 
 // ------------- Post a new movie ------------- .
-moviesRouter.post('/', (req, res) => {
+moviesRouter.post('/', async (req, res) => {
   const result = validateMovie(req.body)
 
   if (!result.success) {
@@ -43,15 +42,7 @@ moviesRouter.post('/', (req, res) => {
     return res.status(400).json({ error: JSON.parse(result.error.message) })
   }
 
-  // en base de datos
-  const newMovie = {
-    id: randomUUID(), // uuid v4
-    ...result.data
-  }
-
-  // Esto no sería REST, porque estamos guardando
-  // el estado de la aplicación en memoria
-  movies.push(newMovie)
+  const newMovie = await MovieModel.create(result.data)
 
   res.status(201).json(newMovie)
 })
