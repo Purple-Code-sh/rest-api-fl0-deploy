@@ -1,10 +1,8 @@
 import { Router } from 'express'
-import { readJSON } from '../utils/requireSystem.js'
 import { validateMovie, validatePartialMovie } from '../schemas/movieSchema.js'
 import { MovieModel } from '../models/movie.js'
 
 export const moviesRouter = Router()
-const movies = readJSON('./movies.json')
 
 const ACCEPTED_ORIGINS = [
   'http://localhost:8080',
@@ -42,13 +40,13 @@ moviesRouter.post('/', async (req, res) => {
     return res.status(400).json({ error: JSON.parse(result.error.message) })
   }
 
-  const newMovie = await MovieModel.create(result.data)
+  const newMovie = await MovieModel.create({ input: result.data })
 
   res.status(201).json(newMovie)
 })
 
 // ------------- Delete a specific movie ------------- .
-moviesRouter.delete('/:id', (req, res) => {
+moviesRouter.delete('/:id', async (req, res) => {
   const origin = req.header('origin')
 
   if (ACCEPTED_ORIGINS.includes(origin) || !origin) {
@@ -56,19 +54,17 @@ moviesRouter.delete('/:id', (req, res) => {
   }
 
   const { id } = req.params
-  const movieIndex = movies.findIndex(movie => movie.id === id)
+  const movieDeleted = await MovieModel.delete({ id })
 
-  if (movieIndex === -1) {
-    return res.status(404).json({ message: 'Movie not found' })
+  if (movieDeleted === true) {
+    return res.json({ message: 'Movie deleted' })
   }
 
-  movies.splice(movieIndex, 1)
-
-  return res.json({ message: 'Movie deleted' })
+  return res.json({ message: 'Cannot find the movie, check the id' })
 })
 
 // ------------- Update a specific movie ------------- .
-moviesRouter.patch('/:id', (req, res) => {
+moviesRouter.patch('/:id', async (req, res) => {
   const result = validatePartialMovie(req.body)
 
   if (!result.success) {
@@ -76,18 +72,7 @@ moviesRouter.patch('/:id', (req, res) => {
   }
 
   const { id } = req.params
-  const movieIndex = movies.findIndex(movie => movie.id === id)
-
-  if (movieIndex === -1) {
-    return res.status(404).json({ message: 'Movie not found' })
-  }
-
-  const updatedMovie = {
-    ...movies[movieIndex],
-    ...result.data
-  }
-
-  movies[movieIndex] = updatedMovie
+  const updatedMovie = await MovieModel.update({ id, input: result.data })
 
   return res.json(updatedMovie)
 })

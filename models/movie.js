@@ -18,7 +18,7 @@ export class MovieModel {
     return movie
   }
 
-  static async create (input) {
+  static async create ({ input }) {
     // en base de datos
     const newMovie = {
       id: randomUUID(), // uuid v4
@@ -27,5 +27,25 @@ export class MovieModel {
 
     movies.push(newMovie)
     return newMovie
+  }
+
+  static async delete ({ id }) {
+    const movieIndex = movies.findIndex(movie => movie.id === id)
+    if (movieIndex === -1) return false
+
+    movies.splice(movieIndex, 1)
+    return true
+  }
+
+  static async update ({ id, input }) {
+    const movieIndex = movies.findIndex(movie => movie.id === id)
+    if (movieIndex === -1) return false
+
+    movies[movieIndex] = {
+      ...movies[movieIndex],
+      ...input
+    }
+
+    return movies[movieIndex]
   }
 }
