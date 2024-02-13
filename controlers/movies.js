@@ -1,5 +1,5 @@
-import { MovieModel } from '../models/movie'
-import { validateMovie, validatePartialMovie } from '../schemas/movieSchema'
+import { MovieModel } from '../models/movie.js'
+import { validateMovie, validatePartialMovie } from '../schemas/movieSchema.js'
 
 const ACCEPTED_ORIGINS = [
   'http://localhost:8080',
